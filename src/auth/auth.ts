@@ -1,4 +1,4 @@
-// import { betterAuth } from "better-auth";
+﻿// import { betterAuth } from "better-auth";
 // import { prismaAdapter } from "better-auth/adapters/prisma";
 // import { PrismaClient } from "../generated/prisma/client.js";
 // import { Pool } from "pg";
@@ -23,7 +23,7 @@
 //     enabled: true,
 //   },
 //   session: {
-//     expiresIn: 60 * 60 * 24 * 1, // 1 day long session
+//     expiresIn: 60 * 60 * 24 * 30, // 30 days long session
 //     updateAge: 60 * 60 * 2,      // Update session expiration every 2 hours
 //   },
 //   user: {
@@ -58,7 +58,7 @@ export const auth = betterAuth({
     enabled: true,
   },
   session: {
-    expiresIn: 60 * 60 * 24 * 1, // 1 day
+    expiresIn: 60 * 60 * 24 * 30, // 30 days
     updateAge: 60 * 60 * 2,      // 2 hours
   },
   user: {

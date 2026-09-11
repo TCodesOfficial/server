@@ -1,1 +1,10 @@
-export class User {}
+﻿export class User {
+  id!: string;
+  name!: string;
+  email!: string;
+  emailVerified!: boolean;
+  image!: string | null;
+  createdAt!: Date;
+  updatedAt!: Date;
+  location!: string | null;
+}
