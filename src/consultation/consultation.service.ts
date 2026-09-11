@@ -1,14 +1,14 @@
 ﻿import {
-  Injectable,
   BadGatewayException,
   BadRequestException,
+  Injectable,
+  Logger,
   NotFoundException,
   UnprocessableEntityException,
-  Logger,
 } from "@nestjs/common";
-import { PrismaService } from "../prisma/prisma.service.js";
 import axios from "axios";
 import FormData from "form-data";
+import { PrismaService } from "../prisma/prisma.service.js";
 import type { ClinicalExtraction, IntronTranscriptionResponse } from "./dto/consultation-response.dto.js";
 
 @Injectable()
@@ -43,63 +43,6 @@ Rules:
 - Do NOT include any text outside the JSON object`;
 
   constructor(private readonly prisma: PrismaService) {}
-
-  async processAudio(
-    fileBuffer: Buffer,
-    mimeType: string,
-    originalName: string,
-    userId: string,
-    patientIdentifier?: string,
-  ) {
-    const transcript = await this.transcribeAudio(
-      fileBuffer,
-      mimeType,
-      originalName,
-    );
-
-    if (!transcript || transcript.trim().length === 0) {
-      throw new UnprocessableEntityException(
-        "No speech detected in the audio file",
-      );
-    }
-
-    const extraction = await this.extractClinicalData(transcript);
-
-    const consultation = await this.prisma.patientConsultation.create({
-      data: {
-        hospitalId: userId,
-        patientIdentifier: patientIdentifier ?? null,
-        rawTranscript: transcript,
-        subjective: extraction.subjective,
-        objective: extraction.objective,
-        assessment: extraction.assessment,
-        plan: extraction.plan,
-        icd10Codes: extraction.icd10Codes,
-        Priority: extraction.Priority,
-      },
-    });
-
-    return consultation;
-  }
-
-  async getHospitalHistory(userId: string) {
-    return this.prisma.patientConsultation.findMany({
-      where: { hospitalId: userId },
-      orderBy: { createdAt: "desc" },
-    });
-  }
-
-  async getConsultationById(id: string, userId: string) {
-    const consultation = await this.prisma.patientConsultation.findFirst({
-      where: { id, hospitalId: userId },
-    });
-
-    if (!consultation) {
-      throw new NotFoundException("Consultation not found");
-    }
-
-    return consultation;
-  }
 
   private async transcribeAudio(
     fileBuffer: Buffer,
@@ -155,6 +98,35 @@ Rules:
       }
 
       throw error;
+    }
+  }
+
+  private validateClinicalExtraction(data: ClinicalExtraction): void {
+    const requiredFields = [
+      "subjective",
+      "objective",
+      "assessment",
+      "plan",
+      "icd10Codes",
+      "Priority",
+    ] as const;
+
+    for (const field of requiredFields) {
+      if (data[field] === undefined || data[field] === null) {
+        throw new BadGatewayException(
+          `Clinical extraction missing required field: ${field}`,
+        );
+      }
+    }
+
+    if (!Array.isArray(data.icd10Codes)) {
+      throw new BadGatewayException("icd10Codes must be an array");
+    }
+
+    if (!["URGENT", "NORMAL", "LOW"].includes(data.Priority)) {
+      throw new BadGatewayException(
+        "Priority must be URGENT, NORMAL, or LOW",
+      );
     }
   }
 
@@ -219,32 +191,60 @@ Rules:
     }
   }
 
-  private validateClinicalExtraction(data: ClinicalExtraction): void {
-    const requiredFields = [
-      "subjective",
-      "objective",
-      "assessment",
-      "plan",
-      "icd10Codes",
-      "Priority",
-    ] as const;
+  async processAudio(
+    fileBuffer: Buffer,
+    mimeType: string,
+    originalName: string,
+    userId: string,
+    patientIdentifier?: string,
+  ) {
+    const transcript = await this.transcribeAudio(
+      fileBuffer,
+      mimeType,
+      originalName,
+    );
 
-    for (const field of requiredFields) {
-      if (data[field] === undefined || data[field] === null) {
-        throw new BadGatewayException(
-          `Clinical extraction missing required field: ${field}`,
-        );
-      }
-    }
-
-    if (!Array.isArray(data.icd10Codes)) {
-      throw new BadGatewayException("icd10Codes must be an array");
-    }
-
-    if (!["URGENT", "NORMAL", "LOW"].includes(data.Priority)) {
-      throw new BadGatewayException(
-        "Priority must be URGENT, NORMAL, or LOW",
+    if (!transcript || transcript.trim().length === 0) {
+      throw new UnprocessableEntityException(
+        "No speech detected in the audio file",
       );
     }
+
+    const extraction = await this.extractClinicalData(transcript);
+
+    const consultation = await this.prisma.patientConsultation.create({
+      data: {
+        hospitalId: userId,
+        patientIdentifier: patientIdentifier ?? null,
+        rawTranscript: transcript,
+        subjective: extraction.subjective,
+        objective: extraction.objective,
+        assessment: extraction.assessment,
+        plan: extraction.plan,
+        icd10Codes: extraction.icd10Codes,
+        Priority: extraction.Priority,
+      },
+    });
+
+    return consultation;
   }
+
+  async getHospitalHistory(userId: string) {
+    return this.prisma.patientConsultation.findMany({
+      where: { hospitalId: userId },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
+  async getConsultationById(id: string, userId: string) {
+    const consultation = await this.prisma.patientConsultation.findFirst({
+      where: { id, hospitalId: userId },
+    });
+
+    if (!consultation) {
+      throw new NotFoundException("Consultation not found");
+    }
+
+    return consultation;
+  }  
 }
