@@ -1,9 +1,9 @@
-import { All, Controller, Req, Res } from "@nestjs/common";
+﻿import { All, Controller, Req, Res } from "@nestjs/common";
 import { toNodeHandler } from "better-auth/node";
 import { type Request, type Response } from "express";
 import { auth } from "./auth.js";
 
-@Controller("api/auth")
+@Controller("auth")
 export class AuthController {
   private readonly handler = toNodeHandler(auth);
 

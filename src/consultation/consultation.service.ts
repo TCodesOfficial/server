@@ -29,7 +29,7 @@ Return ONLY valid JSON with this exact structure:
   "assessment": "Clinical impression, differential diagnoses, working diagnosis",
   "plan": "Treatment plan, medications prescribed, procedures ordered, follow-up instructions",
   "icd10Codes": ["ICD-10-CM codes relevant to the encounter"],
-  "triagePriority": "URGENT" | "NORMAL" | "LOW"
+  "Priority": "URGENT" | "NORMAL" | "LOW"
 }
 
 Rules:
@@ -38,7 +38,7 @@ Rules:
 - assessment: Clinical reasoning and diagnosis
 - plan: Actionable next steps (medications, referrals, lifestyle advice, follow-up)
 - icd10Codes: Use ICD-10-CM codes. Include as many as clinically appropriate.
-- triagePriority: URGENT = life-threatening or needs immediate intervention, NORMAL = standard care, LOW = routine/follow-up
+- Priority: URGENT = life-threatening or needs immediate intervention, NORMAL = standard care, LOW = routine/follow-up
 - If information is not available for a field, write "Not documented in transcript"
 - Do NOT include any text outside the JSON object`;
 
@@ -75,7 +75,7 @@ Rules:
         assessment: extraction.assessment,
         plan: extraction.plan,
         icd10Codes: extraction.icd10Codes,
-        Priority: extraction.triagePriority,
+        Priority: extraction.Priority,
       },
     });
 
@@ -226,7 +226,7 @@ Rules:
       "assessment",
       "plan",
       "icd10Codes",
-      "triagePriority",
+      "Priority",
     ] as const;
 
     for (const field of requiredFields) {
@@ -241,9 +241,9 @@ Rules:
       throw new BadGatewayException("icd10Codes must be an array");
     }
 
-    if (!["URGENT", "NORMAL", "LOW"].includes(data.triagePriority)) {
+    if (!["URGENT", "NORMAL", "LOW"].includes(data.Priority)) {
       throw new BadGatewayException(
-        "triagePriority must be URGENT, NORMAL, or LOW",
+        "Priority must be URGENT, NORMAL, or LOW",
       );
     }
   }

@@ -10,6 +10,9 @@ async function bootstrap() {
     bodyParser: false,
   });
 
+  const apiPrefix = process.env.API_PREFIX ?? "api/v1";
+  app.setGlobalPrefix(apiPrefix);
+
   app.enableCors({
     origin: process.env.CLIENT_URL,
     credentials: true,
@@ -29,7 +32,7 @@ async function bootstrap() {
   const urlencodedParser = express.urlencoded({ extended: true });
 
   app.use((req: Request, res: Response, next: NextFunction) => {
-    if (req.path.startsWith("/api/auth")) {
+    if (req.path.startsWith(`/${apiPrefix}/auth`)) {
       return next();
     }
     jsonParser(req, res, (err: unknown) => {

@@ -4,7 +4,7 @@
   assessment: string;
   plan: string;
   icd10Codes: string[];
-  triagePriority: "URGENT" | "NORMAL" | "LOW";
+  Priority: "URGENT" | "NORMAL" | "LOW";
 }
 
 export interface IntronTranscriptionResponse {

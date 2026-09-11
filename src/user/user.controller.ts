@@ -4,7 +4,7 @@ import { User } from "./user.decorator.js";
 import { UpdateUserDto } from "./dto/update-user.dto.js";
 import { UserService } from "./user.service.js";
 
-@Controller("api/user")
+@Controller("user")
 export class UserController {
   constructor(private readonly userService: UserService) {}
 

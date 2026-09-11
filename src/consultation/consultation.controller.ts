@@ -28,7 +28,7 @@ const AUDIO_MIMES = [
   "audio/x-flac",
 ];
 
-@Controller("api/consultation")
+@Controller("consultation")
 @UseGuards(AuthGuard)
 export class ConsultationController {
   constructor(private readonly consultationService: ConsultationService) {}
